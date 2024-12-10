@@ -14,7 +14,7 @@ class InterventionModule(nn.Module):
         #for p in self.mlp.parameters():
         #    p.requires_grad = False
     
-    def to_cuda(self, device):
+    def to_device(self, device):
       self.A = self.A.to(device)
       self.mean_0 = self.mean_0.to(device)
       self.mean_1 = self.mean_1.to(device)
@@ -27,7 +27,7 @@ class InterventionModule(nn.Module):
       #self.mlp = self.mlp.to("cpu")
 
     def forward(self, hidden_states):
-        self.to_cuda(hidden_states.device)
+        self.to_device(hidden_states.device)
         # if hidden state is half, convert laso the params to half precision
         if hidden_states.dtype == torch.float16:
           self.A = self.A.half()

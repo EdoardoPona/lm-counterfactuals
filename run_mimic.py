@@ -11,6 +11,9 @@ import torch
 import numpy as np
 from sklearn.linear_model import SGDClassifier
 
+device = 'mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
+
+
 @torch.no_grad()
 def encode(model, tokenizer, text, batch_size,layer=-1, pooling="last", max_len=128):
   encodings = []
@@ -18,7 +21,7 @@ def encode(model, tokenizer, text, batch_size,layer=-1, pooling="last", max_len=
   with torch.no_grad():
    for i in tqdm.tqdm(range(0, len(text), batch_size)):
     batch = text[i:i+batch_size]
-    padded_tokens = tokenizer(batch, padding=True, return_tensors="pt", max_length=max_len, truncation=True).to("cuda")
+    padded_tokens = tokenizer(batch, padding=True, return_tensors="pt", max_length=max_len, truncation=True).to(device)
     outputs = model(**padded_tokens, output_hidden_states=True)
     lengths = padded_tokens["attention_mask"].sum(axis=1).detach().cpu().numpy()
 
@@ -79,7 +82,7 @@ if __name__ == "__main__":
             tokenizer.bos_token = tokenizer.eos_token
     tokenizer.pad_token=tokenizer.eos_token
     
-    with open("../bios_data/bios_train.pickle", "rb") as f:
+    with open("interim/bios_data/bios_train.pickle", "rb") as f:
         data = pickle.load(f)
     y = np.array([d["p"] for d in data])
     z = np.array([1 if d["g"] == "m" else 0 for d in data])
