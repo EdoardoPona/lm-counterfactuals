@@ -1,6 +1,6 @@
-import utils
+import ravfogel_lm_counterfactuals.utils as utils
 import argparse
-from mimic import InterventionModule, insert_intervention, insert_intervention
+from ravfogel_lm_counterfactuals.mimic import InterventionModule, insert_intervention, insert_intervention
 from transformers import AutoTokenizer
 import transformers
 import tqdm

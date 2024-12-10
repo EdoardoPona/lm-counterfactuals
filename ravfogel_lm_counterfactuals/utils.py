@@ -1,20 +1,26 @@
+from dotenv import load_dotenv
+load_dotenv()
 from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 import transformers
 from transformers.generation import LogitsProcessor,LogitsProcessorList
 import torch.nn as nn
-from mimic import InterventionModule, insert_intervention, insert_intervention
+from ravfogel_lm_counterfactuals.mimic import InterventionModule, insert_intervention, insert_intervention
 import pickle
-from sampling import counterfactual_generation_vectorized, GumbelProcessor
+from ravfogel_lm_counterfactuals.sampling import counterfactual_generation_vectorized, GumbelProcessor
 import numpy as np
 import torch
 from datasets import load_dataset
+import os
+
 
 REQUIRE_LOADING = ["mimic_gender_llama3_instruct", "mimic_gender_gpt2_instruct"]
+BIOS_DATA_PATH = os.environ['BIOS_DATA_PATH']
+MODEL_DATA_PATH = os.environ['MODEL_DATA_PATH']
 
 
 def load_bios_data(ys_to_keep = ["professor"], zs_to_keep = [1,0]):
 
-    with open("interim/bios_data/bios_train.pickle", "rb") as f:
+    with open(f"{BIOS_DATA_PATH}/bios_train.pickle", "rb") as f:
         data = pickle.load(f)
         y = np.array([d["p"] for d in data])
         z = np.array([1 if d["g"] == "m" else 0 for d in data])
@@ -98,8 +104,6 @@ def load_model(model_name):
     return transformers.AutoModelForCausalLM.from_pretrained(
             model_name, device_map="auto", torch_dtype=torch.float32,trust_remote_code=True)
 
-
-
     
 def get_counterfactual_model(intervention_type: str):
 
@@ -124,10 +128,10 @@ def get_counterfactual_model(intervention_type: str):
     if intervention_type in REQUIRE_LOADING:
         
         if intervention_type == "mimic_gender_llama3_instruct":
-            with open("interim/mimic_gender_llama3_instruct_layer=16.pickle", "rb") as f:
+            with open(f"{MODEL_DATA_PATH}/mimic_gender_llama3_instruct_layer=16.pickle", "rb") as f:
                 intervention_module = pickle.load(f)
         elif intervention_type == "mimic_gender_gpt2_instruct":
-            with open("interim/mimic_gender_gpt2_layer=16.pickle", "rb") as f:
+            with open(f"{MODEL_DATA_PATH}/mimic_gender_gpt2_layer=16.pickle", "rb") as f:
                 intervention_module = pickle.load(f)
 
         intervention_module.to_cuda(model.device)
