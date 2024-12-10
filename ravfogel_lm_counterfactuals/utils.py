@@ -57,7 +57,10 @@ def load_sents_dataset(dataset_name, bios_args=None):
 def set_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    if torch.backends.mps.is_available():
+        torch.backends.mps.manual_seed_all(seed)
     
 def get_counterfactual_output(counterfactual_model, original_model, tokenizer, prompt, original_continuation, max_new_tokens):
 
@@ -131,10 +134,10 @@ def get_counterfactual_model(intervention_type: str):
             with open(f"{MODEL_DATA_PATH}/mimic_gender_llama3_instruct_layer=16.pickle", "rb") as f:
                 intervention_module = pickle.load(f)
         elif intervention_type == "mimic_gender_gpt2_instruct":
-            with open(f"{MODEL_DATA_PATH}/mimic_gender_gpt2_layer=16.pickle", "rb") as f:
+            with open(f"{MODEL_DATA_PATH}/mimic_gender_gpt2-xl_layer=16.pickle", "rb") as f:
                 intervention_module = pickle.load(f)
 
-        intervention_module.to_cuda(model.device)
+        intervention_module.to_device(model.device)
         insert_intervention(model, model_name, intervention_module, layer=16, after_layer_norm=True, replace_existing=False)
         
 
