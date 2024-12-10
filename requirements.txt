@@ -16,4 +16,4 @@ tqdm==4.66.4
 transformers==4.38.2
 wandb==0.18.3
 gdown==5.2.0
-dotenv
+python-dotenv
