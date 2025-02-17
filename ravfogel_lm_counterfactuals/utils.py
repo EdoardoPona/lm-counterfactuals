@@ -62,7 +62,15 @@ def set_seed(seed):
     if torch.backends.mps.is_available():
         torch.backends.mps.manual_seed_all(seed)
     
-def get_counterfactual_output(counterfactual_model, original_model, tokenizer, prompt, original_continuation, max_new_tokens):
+def get_counterfactual_output(
+    counterfactual_model, 
+    original_model, 
+    tokenizer, 
+    original_prompt, 
+    counterfactual_prompt, 
+    original_continuation, 
+    max_new_tokens
+):
 
     GENERATION_CONFIG_COUNTERFACTUALS = GenerationConfig(
             token_healing=True,
@@ -74,14 +82,17 @@ def get_counterfactual_output(counterfactual_model, original_model, tokenizer, p
             max_new_tokens=max_new_tokens
         )
     
-    noise = counterfactual_generation_vectorized(original_model, tokenizer, prompt, original_continuation)
+    noise = counterfactual_generation_vectorized(original_model, tokenizer, original_prompt, original_continuation)
     processor = GumbelProcessor(torch.tensor(noise).to(counterfactual_model.device))
     
-    tokens_prompt = tokenizer.encode(prompt, return_tensors="pt", add_special_tokens=False).to(counterfactual_model.device)
+    tokens_prompt = tokenizer.encode(
+        counterfactual_prompt, return_tensors="pt", add_special_tokens=False
+    ).to(counterfactual_model.device)
     out_tokens = counterfactual_model.generate(tokens_prompt, logits_processor=[processor], generation_config=GENERATION_CONFIG_COUNTERFACTUALS)
     out_tokens = out_tokens.detach().cpu().numpy()[0]
     out_text = tokenizer.decode(out_tokens, skip_special_tokens=True)
     return out_tokens, out_text
+
 
 def get_continuation(model, tokenizer, prompt, max_new_tokens=30, return_only_continuation=True,num_beams=1, do_sample=True, token_healing=True):
 
