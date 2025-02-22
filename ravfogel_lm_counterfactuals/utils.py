@@ -73,7 +73,7 @@ def get_counterfactual_output(
 ):
 
     GENERATION_CONFIG_COUNTERFACTUALS = GenerationConfig(
-            token_healing=True,
+            token_healing=False,
             pad_token_id=tokenizer.eos_token_id,
             eos_token_id=tokenizer.eos_token_id,
             bos_token_id = tokenizer.bos_token_id,
@@ -94,16 +94,16 @@ def get_counterfactual_output(
     return out_tokens, out_text
 
 
-def get_continuation(model, tokenizer, prompt, max_new_tokens=30, return_only_continuation=True,num_beams=1, do_sample=True, token_healing=True):
+def get_continuation(model, tokenizer, prompt, max_new_tokens=30, return_only_continuation=True,num_beams=1, do_sample=True, token_healing=False):
 
     config = GenerationConfig(
-            token_healing=True,
+            token_healing=token_healing,
             pad_token_id=tokenizer.eos_token_id,
             eos_token_id=tokenizer.eos_token_id,
             bos_token_id = tokenizer.bos_token_id,
             do_sample=do_sample,
             num_beams=num_beams,
-            max_new_tokens=max_new_tokens
+            max_new_tokens=max_new_tokens,
         )
     
     tokens_prompt = tokenizer.encode(prompt, return_tensors="pt", add_special_tokens=False).to(model.device)
